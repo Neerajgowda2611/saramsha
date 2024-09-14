@@ -6,7 +6,10 @@ import numpy as np
 from pyAudioAnalysis import audioSegmentation as aS
 from sklearn.cluster import AgglomerativeClustering
 from pydub import AudioSegment
+import requests
+import json
 
+ollamaUrl="https://llm.cialabs.org/api/generate"
 AudioSegment.converter= ("C:\\Users\\NEERAJ\\Desktop\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe")
 
 # Function to convert MP3 to WAV
@@ -25,60 +28,6 @@ def audioToText(audio_file):
     result = model.transcribe(audio_file)
     return result['text']
 
-def extract_features(wav_file_path):
-    try:
-        # Perform speaker diarization to get segments
-        segments = aS.speaker_diarization(wav_file_path, n_speakers=10, mid_window=2.0, mid_step=0.5, lda_dim=35)
-        
-        # Extract features from segments
-        features = np.array([seg[0] for seg in segments if isinstance(seg[0], (list, np.ndarray))])
-        if features.shape[0] == 0:
-            raise ValueError("No valid features extracted.")
-        return features
-    except Exception as e:
-        print(f"Error during feature extraction: {str(e)}")
-        return None
-
-def estimate_number_of_speakers(features):
-    try:
-        # Perform clustering to estimate number of speakers
-        clustering = AgglomerativeClustering(n_clusters=None, distance_threshold=1.0).fit(features)
-        num_speakers = len(set(clustering.labels_))
-        return num_speakers
-    except Exception as e:
-        print(f"Error during clustering: {str(e)}")
-        return None
-
-def diarizeAudio(wav_file_path, num_speakers):
-    try:
-        # Perform speaker diarization using the estimated number of speakers
-        segments = aS.speaker_diarization(wav_file_path, n_speakers=num_speakers)
-        
-        # Initialize list to hold timestamps and speaker labels
-        timestamps = []
-        start_time = 0
-        frame_duration = 0.2  # Each frame is ~0.2 seconds
-        
-        # Extract and format timestamps
-        for i in range(1, len(segments)):
-            if segments[i] != segments[i-1] or i == len(segments) - 1:
-                end_time = i * frame_duration
-                timestamps.append((start_time, end_time, f"Speaker {int(segments[i-1]) + 1}"))
-                start_time = end_time
-        
-        return timestamps
-    except Exception as e:
-        print(f"Error during speaker diarization: {str(e)}")
-        return None
-
-# Function to print diarization results in a readable format
-def printDiarization(timestamps):
-    if timestamps:
-        for start, end, speaker in timestamps:
-            print(f"{speaker}: from {start:.2f}s to {end:.2f}s")
-    else:
-        print("No speaker segments detected.")
-
 
 # Load PyAnnote for speaker diarization (optional)
 def diarizeAudio(audio_file):
@@ -86,11 +35,42 @@ def diarizeAudio(audio_file):
     diarization = pipeline(audio_file)
     return diarization
 
+def summarizeText(text):
+    headers={
+       "Content-Type":"application/json"
+   }
+    data={
+       "model":"llama3.1",
+       "prompt": f"summarize the following text : {text}"
+   }
+    try:
+        response = requests.post(ollamaUrl, headers=headers, json=data, stream=True)
+        summary = ""
+        for line in response.iter_lines(decode_unicode=True):
+            if line:
+                try:
+                    result = json.loads(line)
+                    if result.get("done"):
+                        break
+                    summary += result.get("response", "")
+                except ValueError as e:
+                    print(f"Error during parsing: {str(e)}")
+                    return None
+        
+        # If summary is not empty, return it
+        if summary:
+            return summary.strip()
+        else:
+            return "No summary generated"
+    except Exception as e:
+        print(f"Error during summarization: {str(e)}")
+        return None
+    
 
 # Main function to process an MP3 file
 def processMp3File(mp3_file_path):
     # Convert MP3 to WAV
-    wav_file_path = "C:\\Users\\NEERAJ\\Desktop\\temp.wav"
+    wav_file_path = "temp.wav"
     mp3ToWav(mp3_file_path, wav_file_path)
 
     # Step 1: Convert WAV to text using Whisper
@@ -101,12 +81,22 @@ def processMp3File(mp3_file_path):
         print(f"Error converting audio to text: {str(e)}")
         return
 
-    # Speaker Diarization using PyAnnote (local)
+    # # Speaker Diarization using PyAnnote (local)
+    # try:
+    #     diarization = diarizeAudio(wav_file_path)
+    #     print("Speaker Diarization: ", diarization)
+    # except Exception as e:
+    #     print(f"Error in diarization: {str(e)}")
+    
+    
+    #Summarization of the text
     try:
-        diarization = diarizeAudio(wav_file_path)
-        print("Speaker Diarization: ", diarization)
+        summary=summarizeText(text)
+        if summary:
+            print("Here's the SUMMARY !: ",summary)
     except Exception as e:
-        print(f"Error in diarization: {str(e)}")
+        print(f"error summarization : {str(e)}")
+    
 
     # Clean up the temporary WAV file
     if os.path.exists(wav_file_path):
