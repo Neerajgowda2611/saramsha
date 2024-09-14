@@ -1,18 +1,14 @@
 import whisper
 from pyannote.audio import Pipeline
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import os
-import numpy as np
-from pyAudioAnalysis import audioSegmentation as aS
-from sklearn.cluster import AgglomerativeClustering
 from pydub import AudioSegment
 import requests
 import json
 
 ollamaUrl="https://llm.cialabs.org/api/generate"
-AudioSegment.converter= ("C:\\Users\\NEERAJ\\Desktop\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe")
+AudioSegment.converter= ("C:\\Users\\NEERAJ\\Desktop\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe")#add the path where your ffmpeg is present
 
-# Function to convert MP3 to WAV
+# Function to convert MP3 to WAV 
 def mp3ToWav(mp3_file, wav_file):
     audio = AudioSegment.from_mp3(mp3_file)
     audio.export(wav_file, format="wav")
@@ -29,11 +25,11 @@ def audioToText(audio_file):
     return result['text']
 
 
-# Load PyAnnote for speaker diarization (optional)
-def diarizeAudio(audio_file):
-    pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
-    diarization = pipeline(audio_file)
-    return diarization
+# # Load PyAnnote for speaker diarization (optional)
+# def diarizeAudio(audio_file):
+#     pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
+#     diarization = pipeline(audio_file)
+#     return diarization
 
 def summarizeText(text):
     headers={
@@ -104,7 +100,8 @@ def processMp3File(mp3_file_path):
 
 # Run the code with an MP3 file 
 if __name__ == '__main__':
-    mp3_file_path = r'C:\Users\NEERAJ\Desktop\saramsha\Saramshaa\aud.mp3'  # Replace with the path to your MP3 file
+    # mp3_file_path = r'C:\Users\NEERAJ\Desktop\saramsha\Saramshaa\aud.mp3'  # Replace with the path to your MP3 file
+    mp3_file_path= input("enter the path of ypur audio (mP3) file : ")
 
     # Ensure the file exists
     if os.path.exists(mp3_file_path):
