@@ -1,5 +1,4 @@
 import whisper
-from pyannote.audio import Pipeline
 import os
 from pydub import AudioSegment
 import requests

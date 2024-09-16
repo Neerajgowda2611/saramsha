@@ -48,6 +48,11 @@ This project provides a Python script to transcribe speech from an MP3 file, and
     ```bash
     python main.py
     ```
+    or 
+
+    ```bash
+    click on the run button at the top right
+    ```
 
 2. Enter the path of the MP3 file when prompted:
     ```
