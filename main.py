@@ -16,6 +16,8 @@ def mp3ToWav(mp3_file, wav_file):
 # Load Whisper model for audio-to-text conversion
 def loadWhisper():
     model = whisper.load_model("base")  
+    #or use this to run on your cpu 
+    #model= whisper.load_model(("base") , (device="cpu")
     return model
 
 # Convert audio to text using Whisper
