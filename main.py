@@ -25,13 +25,6 @@ def audioToText(audio_file):
     result = model.transcribe(audio_file)
     return result['text']
 
-
-# # Load PyAnnote for speaker diarization (optional)
-# def diarizeAudio(audio_file):
-#     pipeline = Pipeline.from_pretrained("pyannote/speaker-diarization", use_auth_token="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")
-#     diarization = pipeline(audio_file)
-#     return diarization
-
 def summarizeText(text):
     headers={
        "Content-Type":"application/json"
@@ -77,14 +70,6 @@ def processMp3File(mp3_file_path):
     except Exception as e:
         print(f"Error converting audio to text: {str(e)}")
         return
-
-    # # Speaker Diarization using PyAnnote (local)
-    # try:
-    #     diarization = diarizeAudio(wav_file_path)
-    #     print("Speaker Diarization: ", diarization)
-    # except Exception as e:
-    #     print(f"Error in diarization: {str(e)}")
-    
     
     #Summarization of the text
     try:
